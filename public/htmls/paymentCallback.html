@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>بازگشت از درگاه پرداخت</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../styles/paymentCallback.css" />
+  <style>
+    @font-face {
+      font-family: 'fanomb';
+      src: url(../assets/fonts/iranyekanwebbold.woff)
+    }
+  </style>
+</head>
+
+<body onload="getPaymentCallbackResult()">
+  <div id="bm" class="bm">
+    <div class="div-image">
+      <img style="height: 160px; " src="../assets/ball.png" />
+    </div>
+  </div>
+  <div id="cm" class="cm">
+    <div class="payment_callback_message" id="success-box">
+    </div>
+    <div class="payment_callback_message" id="error-box">
+    </div>
+    <div class="div-button">
+      <button id="gotoApp-btn"
+      class="button"
+      onclick="window.location.href = 'https://ballapp.com/redirect/wallet';">
+        بازگشت به اپلیکیشن
+    </button>
+    </div>
+  </div>
+  
+  <script src="../scripts/bodymovin.js"></script>
+  <script src="../scripts/paymentCallbackAnimate.js"></script>
+  <script>
+    var appEndpoint = location.protocol + '//' + location.hostname + '/ball';
+
+    function getParameterByName(name, url) {
+      if (!url) url = window.location.href;
+      name = name.replace(/[\[\]]/g, '\\$&');
+      var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+      if (!results) return null;
+      if (!results[2]) return '';
+      return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+    function getPaymentCallbackResult() {
+      var paymentType = getParameterByName("type");
+      var status = getParameterByName("status");
+      var token = getParameterByName("token");
+      var clientrefId = getParameterByName("clientrefid");
+      var refId = getParameterByName("refid");
+      var success;
+
+      if (paymentType === "wallet") {
+        if (status && token) {
+          fetch(`${appEndpoint}/api/users/customers/wallets/amount/callback?status=${status}&token=${token}`)
+            .then((response) => {
+              if (response.status === 400) {
+                success = false;
+                return response.json()
+              } else {
+                success = true;
+              }
+            })
+            .then(_result => {
+              if (success) {
+                document.getElementById("success-box").innerHTML = "کیف پول شما با موفقت شارژ شد";
+                document.getElementById("gotoApp-btn").style.display = "block";
+              } else {
+                document.getElementById("error-box").innerHTML = _result.errs;
+                document.getElementById("gotoApp-btn").style.display = "block";
+              }
+            })
+        } else {
+          fetch(`${appEndpoint}/api/users/customers/wallets/amount/callback?refid=${refId}&clientrefId=${clientrefId}`)
+            .then((response) => {
+              if (response.status === 400) {
+                success = false;
+                return response.json()
+              } else {
+                success = true;
+              }
+            })
+            .then(_result => {
+              if (success) {
+                document.getElementById("success-box").innerHTML = "کیف پول شما با موفقت شارژ شد";
+                document.getElementById("gotoApp-btn").style.display = "block";
+              } else {
+                document.getElementById("error-box").innerHTML = _result.errs;
+                document.getElementById("gotoApp-btn").style.display = "block";
+              }
+            })
+        }
+      } else if (paymentType === "reserve") {
+        if (status && token) {
+          fetch(`${appEndpoint}/api/sportSites/reserves/paymentType/direct/callback?status=${status}&token=${token}`)
+            .then((response) => {
+              if (response.status === 400) {
+                success = false;
+                return response.json()
+              } else {
+                success = true;
+              }
+            })
+            .then(_result => {
+              if (success) {
+                document.getElementById("success-box").innerHTML = "رزرو شما با موفقیت انجام شد";
+                document.getElementById("gotoApp-btn").style.display = "block";
+
+              } else {
+                document.getElementById("error-box").innerHTML = _result.errs;
+                document.getElementById("gotoApp-btn").style.display = "block";
+              }
+            })
+        } else {
+          fetch(`${appEndpoint}/api/sportSites/reserves/paymentType/direct/callback?refid=${refId}&clientrefId=${clientrefId}`)
+            .then((response) => {
+              if (response.status === 400) {
+                success = false;
+                return response.json()
+              } else {
+                success = true;
+              }
+            })
+            .then(_result => {
+              if (success) {
+                document.getElementById("success-box").innerHTML = "رزرو شما با موفقیت انجام شد";
+                document.getElementById("gotoApp-btn").style.display = "block";
+              } else {
+                document.getElementById("error-box").innerHTML = _result.errs;
+                document.getElementById("gotoApp-btn").style.display = "block";
+              }
+            })
+        }
+      }
+    }
+  </script>
+</body>
+
+</html>

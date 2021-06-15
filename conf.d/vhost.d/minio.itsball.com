@@ -1,0 +1,1 @@
+rewrite /media-storage/(.*) /$1  break;

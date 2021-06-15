@@ -1,0 +1,12 @@
+version: '3.3'
+services:
+  pod_ball_server:
+    build:
+      context: .
+      dockerfile: pod-dockerfile-web
+    image: pod_ball_server:1.0.1
+  pod_ball_nginx_proxy:
+    build:
+      context: .
+      dockerfile: pod-dockerfile-webserver
+    image: pod_ball_nginx_proxy:1.0.0

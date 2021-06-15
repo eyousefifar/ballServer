@@ -1,0 +1,187 @@
+version: '3.3'
+services:
+  ball_redis_db:
+    image: "redis:latest"
+    container_name: ball_redis_db
+    hostname: ball_redis_db
+    volumes:
+      - ball_redis_db_volume:/data
+    networks:
+      - ball_shared_network
+    restart: always
+  ball_postgres_db:
+    image: "postgres:latest"
+    container_name: ball_postgres_db
+    hostname: ball_postgres_db
+    environment:
+      POSTGRES_PASSWORD: erfanpass
+      POSTGRES_USER: erfan
+      TZ: "Asia/Tehran"
+    volumes:
+      - ball_postgres_db_volume:/var/lib/postgresql/data
+      - ./conf.d/pod-postgres.conf:/etc/postgresql/postgresql.conf
+    networks:
+      - ball_shared_network
+    restart: always
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+  ball_minio_file_storage:
+    image: "minio/minio:latest"
+    container_name: ball_minio_file_storage
+    hostname: ball_minio_file_storage
+    environment:
+      VIRTUAL_HOST: minio.itsball.com
+      VIRTUAL_PORT: 9000
+      MINIO_ACCESS_KEY: AKIAIOSFOERFIEXAMPLE
+      MINIO_SECRET_KEY: wJalrXUtnERFI7MDENGbPxRfiCYEXAMPLEKEY
+    command: minio server /data 
+    volumes:
+      - ball_minio_file_storage_volume:/data
+    networks:
+      - ball_shared_network
+    restart: always
+  pod_ball_server_01:
+    build:
+      context: .
+      dockerfile: pod-dockerfile-web
+    image: pod_ball_server
+    container_name: pod_ball_server_01
+    environment:
+      VIRTUAL_HOST: api.itsball.com
+      VIRTUAL_PORT: 5000
+      WAIT_HOSTS: ball_postgres_db:5432, ball_redis_db:6379, ball_minio_file_storage:9000
+      ENV: production
+      TZ: "Asia/Tehran"
+    depends_on:
+      - ball_postgres_db
+      - ball_redis_db
+      - ball_minio_file_storage
+    command: bash -c "/wait && npm start"
+    networks:
+      - ball_shared_network
+    restart: always
+  pod_ball_server_02:
+    build:
+      context: .
+      dockerfile: pod-dockerfile-web
+    image: pod_ball_server
+    container_name: pod_ball_server_02
+    environment:
+      VIRTUAL_HOST: api.itsball.com
+      VIRTUAL_PORT: 5000
+      WAIT_HOSTS: pod_ball_server_01:5000
+      ENV: production
+      TZ: "Asia/Tehran"
+    depends_on:
+      - ball_postgres_db
+      - ball_redis_db
+      - ball_minio_file_storage
+    command: bash -c "/wait && npm start"
+    networks:
+      - ball_shared_network
+    restart: always
+  pod_ball_server_03:
+    build:
+      context: .
+      dockerfile: pod-dockerfile-web
+    image: pod_ball_server
+    container_name: pod_ball_server_03
+    environment:
+      VIRTUAL_HOST: api.itsball.com
+      VIRTUAL_PORT: 5000
+      WAIT_HOSTS: pod_ball_server_01:5000
+      ENV: production
+      TZ: "Asia/Tehran"
+    depends_on:
+      - ball_postgres_db
+      - ball_redis_db
+      - ball_minio_file_storage
+    command: bash -c "/wait && npm start"
+    networks:
+      - ball_shared_network
+    restart: always
+  pod_ball_server_04:
+    build:
+      context: .
+      dockerfile: pod-dockerfile-web
+    image: pod_ball_server
+    container_name: pod_ball_server_04
+    environment:
+      VIRTUAL_HOST: api.itsball.com
+      VIRTUAL_PORT: 5000
+      WAIT_HOSTS: pod_ball_server_01:5000
+      ENV: production
+      TZ: "Asia/Tehran"
+    depends_on:
+      - ball_postgres_db
+      - ball_redis_db
+      - ball_minio_file_storage
+    command: bash -c "/wait && npm start"
+    networks:
+      - ball_shared_network
+    restart: always
+  pod_ball_server_05:
+    build:
+      context: .
+      dockerfile: pod-dockerfile-web
+    image: pod_ball_server
+    container_name: pod_ball_server_05
+    environment:
+      VIRTUAL_HOST: api.itsball.com
+      VIRTUAL_PORT: 5000
+      WAIT_HOSTS: pod_ball_server_01:5000
+      ENV: production
+      TZ: "Asia/Tehran"
+    depends_on:
+      - ball_postgres_db
+      - ball_redis_db
+      - ball_minio_file_storage
+    command: bash -c "/wait && npm start"
+    networks:
+      - ball_shared_network
+    restart: always
+  pod_ball_server_06:
+    build:
+      context: .
+      dockerfile: pod-dockerfile-web
+    image: pod_ball_server
+    container_name: pod_ball_server_06
+    environment:
+      VIRTUAL_HOST: api.itsball.com
+      VIRTUAL_PORT: 5000
+      WAIT_HOSTS: pod_ball_server_01:5000
+      ENV: production
+      TZ: "Asia/Tehran"
+    depends_on:
+      - ball_postgres_db
+      - ball_redis_db
+      - ball_minio_file_storage
+    command: bash -c "/wait && npm start"
+    networks:
+      - ball_shared_network
+    restart: always
+  pod_ball_nginx_proxy:
+    image: jwilder/nginx-proxy
+    container_name: pod_ball_nginx_proxy
+    hostname: pod_ball_nginx_proxy
+    networks:
+      - ball_shared_network
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./conf.d/pod-nginx-proxy.conf:/etc/nginx/conf.d/ball_pod_nginx.conf
+      - ./conf.d/vhost.d:/etc/nginx/vhost.d:ro
+    depends_on:
+      - pod_ball_server_01
+      - pod_ball_server_02
+      - pod_ball_server_03
+      - pod_ball_server_04
+      - pod_ball_server_05
+      - pod_ball_server_06
+    ports:
+      - "8000:80"
+volumes:
+  ball_postgres_db_volume:
+  ball_redis_db_volume:
+  ball_minio_file_storage_volume:
+networks:
+  ball_shared_network:
+    external: true

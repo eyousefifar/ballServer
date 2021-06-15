@@ -1,0 +1,91 @@
+version: '3.3'
+services:
+  ball_redis_db:
+    image: "redis:latest"
+    volumes:
+      - ball_redis_db_volume:/data
+    networks:
+      - ball_shared_network
+    deploy:
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4gb
+  ball_postgres_db:
+    image: "postgres:latest"
+    environment:
+      POSTGRES_PASSWORD: erfi.008
+      POSTGRES_USER: postgres
+      TZ: "Asia/Tehran"
+    volumes:
+      - ball_postgres_db_volume:/var/lib/postgresql/data
+      - ./conf.d/pod-postgres.conf:/etc/postgresql/postgresql.conf
+    networks:
+      - ball_shared_network
+    deploy:
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '8'
+          memory: 6gb
+    # its temporal
+    ports:
+      - "5432:5432"
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+  ball_minio_file_storage:
+    image: "minio/minio:latest"
+    environment:
+      MINIO_ACCESS_KEY: AKIAIOSFOERFIEXAMPLE
+      MINIO_SECRET_KEY: wJalrXUtnERFI7MDENGbPxRfiCYEXAMPLEKEY
+    command: minio server /data 
+    volumes:
+      - ball_minio_file_storage_volume:/data
+    networks:
+      - ball_shared_network
+    deploy:
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4gb
+  pod_ball_server:
+    image: pod_ball_server:1.0.1
+    environment:
+      ENV: production
+      TZ: "Asia/Tehran"
+    depends_on:
+      - ball_postgres_db
+      - ball_redis_db
+      - ball_minio_file_storage
+    deploy:
+      replicas: 6
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '8'
+          memory: 4gb
+    command: "npm start"
+    networks:
+      - ball_shared_network
+  pod_ball_nginx_proxy:
+    image: pod_ball_nginx_proxy:1.0.0
+    networks:
+      - ball_shared_network
+    volumes:
+      - ./public:/var/www/static-files/
+    depends_on:
+      - pod_ball_server
+    ports:
+      - "8000:80"
+volumes:
+  ball_postgres_db_volume:
+  ball_redis_db_volume:
+  ball_minio_file_storage_volume:
+networks:
+  ball_shared_network:
+    external: true

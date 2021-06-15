@@ -1,0 +1,53 @@
+@font-face {
+  font-family: "fanomb";
+  src: url(../assets/fonts/iranyekanwebbold.woff);
+}
+
+html,
+body {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+}
+
+.bm {
+  height: 465px;
+}
+.cm {
+  height: 20vh;
+  bottom: 0;
+}
+
+.div-image {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  right: 0;
+  top: 150px;
+}
+
+.payment_callback_message {
+  color: #626262;
+  text-align: center;
+  font-family: fanomb;
+  font-size: 18px;
+}
+
+.div-button {
+  display: flex;
+  justify-content: center;
+}
+.button {
+  width: 72vw;
+  font-size: 16px;
+  font-family: fanomb;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: unset;
+  background: rgb(92, 38, 163);
+  color: white;
+  margin-top: 32px;
+}
